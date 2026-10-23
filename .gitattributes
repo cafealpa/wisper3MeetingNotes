@@ -1,0 +1,11 @@
+* text=auto
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.aar binary
+*.onnx binary
+*.png binary
+*.jpg binary
+*.m4a binary
+*.mp3 binary
+*.wav binary

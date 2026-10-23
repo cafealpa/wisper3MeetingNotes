@@ -1,0 +1,45 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.idea/
+*.iml
+
+# 개인 개발 환경과 에이전트 첨부 자료
+.codex/
+.agents/
+.codex-remote-attachments/
+.aws/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# API 키, 인증 정보, 서명 키는 로컬에서만 관리한다.
+.env
+.env.*
+!.env.example
+!.env.*.example
+secrets.properties
+secrets.*.properties
+keystore.properties
+key.properties
+credentials.json
+credentials-*.json
+service-account*.json
+*-service-account.json
+google-services.json
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+
+# 실행 로그, 배포 결과물, 개인 음성/회의 자료
+*.log
+*.hprof
+*.apk
+*.aab
+recordings/
+meetings/
+exports/

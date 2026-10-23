@@ -1,0 +1,42 @@
+const { chromium } = require('playwright');
+const path = require('path');
+(async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? {executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH} : {})});
+ const page=await browser.newPage({viewport:{width:736,height:1100}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('file:///'+path.resolve(__dirname,'preview-check.html').replace(/\\/g,'/'));
+ const frame=page.frameLocator('iframe');
+ await frame.locator('.phone').first().waitFor();
+ const app=frame.locator('.phone').first();
+ await app.locator('[data-edit="0"]').click();
+ await app.locator('[data-field="name"]').fill('김민지');
+ await app.locator('[data-action="save"]').click();
+ if(await app.locator('.turnhead').filter({hasText:'김민지'}).count()!==2)throw Error('Rename failed');
+ await app.locator('[data-tab="text"]').click();
+ if(await app.locator('.plaintext').count()!==1)throw Error('Tab failed');
+ await app.locator('[data-tab="speakers"]').click();
+ await app.locator('[data-action="analyze"]').click();
+ await app.locator('[data-count="2명"]').click();
+ await app.locator('[data-action="reanalyze"]').click();
+ if(await app.locator('progress').count()!==1)throw Error('Reanalysis failed');
+ await app.locator('[data-action="cancel"]').click();
+ await app.locator('[data-screen="import"]').click();
+ await app.locator('[data-action="choose"]').click();
+ if(!await app.locator('.dropzone').innerText().then(t=>t.includes('8.4 MB')))throw Error('File preview failed');
+ await app.locator('[data-action="start"]').click();
+ await app.locator('[data-screen="result"]').click();
+ await page.screenshot({path:path.join(__dirname,'preview-note.png'),fullPage:true});
+ const widths=[];
+ for(const width of [320,390,736]){
+  await page.setViewportSize({width,height:1100});
+  const f=page.frames().find(f=>f.parentFrame());
+  widths.push(await f.evaluate(()=>({width:window.innerWidth,overflow:document.documentElement.scrollWidth>window.innerWidth,phoneWidth:document.querySelector('.phone').getBoundingClientRect().width})));
+ }
+ await page.setViewportSize({width:736,height:1100});
+ await frame.locator('[data-variant="햇살 노트"]').evaluate(e=>e.hidden=true);
+ await frame.locator('[data-variant="블룸 대화"]').evaluate(e=>e.hidden=false);
+ await page.screenshot({path:path.join(__dirname,'preview-chat.png'),fullPage:true});
+ console.log(JSON.stringify({errors,widths,interactions:'rename, tabs, analysis, cancel, import: passed'}));
+ await browser.close();
+ if(errors.length||widths.some(x=>x.overflow))process.exitCode=1;
+})();
